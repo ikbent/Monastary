@@ -1,0 +1,707 @@
+[gd_scene load_steps=42 format=2]
+
+[ext_resource path="res://Map.tscn" type="PackedScene" id=1]
+[ext_resource path="res://PnlEvent.gd" type="Script" id=2]
+[ext_resource path="res://Script.gd" type="Script" id=3]
+[ext_resource path="res://Game.gd" type="Script" id=4]
+[ext_resource path="res://PnlAction.gd" type="Script" id=5]
+[ext_resource path="res://textures/clips/drunken_monk.jpg" type="Texture" id=6]
+[ext_resource path="res://Stats.gd" type="Script" id=7]
+[ext_resource path="res://script/Script/NearChurchPortal/NearChurchPortal.gd" type="Script" id=8]
+[ext_resource path="res://PnlDrunk.gd" type="Script" id=9]
+[ext_resource path="res://event_style.tres" type="StyleBox" id=10]
+[ext_resource path="res://WndMass.gd" type="Script" id=11]
+[ext_resource path="res://textures/clips/inn.jpg" type="Texture" id=12]
+[ext_resource path="res://WndTavern.gd" type="Script" id=13]
+[ext_resource path="res://script/Script/Tavern/TavernDoor.gd" type="Script" id=14]
+[ext_resource path="res://script/Script/Tavern/NearTavern.gd" type="Script" id=15]
+[ext_resource path="res://script/Script/Monastary/Monastary.gd" type="Script" id=16]
+[ext_resource path="res://script/Script/Monastary/DedicatePlaceToLord.gd" type="Script" id=17]
+[ext_resource path="res://script/Script/Tavern/VisitTavern.gd" type="Script" id=18]
+[ext_resource path="res://script/Script/NearWell/NearWell.gd" type="Script" id=19]
+[ext_resource path="res://script/Script/NearWell/DrinkWater.gd" type="Script" id=20]
+[ext_resource path="res://script/Script/NearWell/DrinkWater/Effect.gd" type="Script" id=21]
+[ext_resource path="res://script/Script/NearChurchPortal/AttendMass.gd" type="Script" id=22]
+[ext_resource path="res://script/Script/NearChurchPortal/EffectMass.gd" type="Script" id=23]
+[ext_resource path="res://script/Script/Tavern/EffectTavern.gd" type="Script" id=24]
+[ext_resource path="res://script/Script/Tavern/TemptedIntoTavern.gd" type="Script" id=25]
+[ext_resource path="res://script/Script/Monastary/EffectDedication.gd" type="Script" id=26]
+[ext_resource path="res://script/Script/Monastary/EventDedication.gd" type="Script" id=27]
+[ext_resource path="res://script/Script/Monastary/PrayAtAltar.gd" type="Script" id=28]
+[ext_resource path="res://script/Script/Bridge/Regurgitate.gd" type="Script" id=29]
+[ext_resource path="res://script/Script/Bridge/Bridge.gd" type="Script" id=30]
+[ext_resource path="res://script/Script/Bridge/RegurgitateEffect.gd" type="Script" id=31]
+[ext_resource path="res://sounds/psalm-1.ogg" type="AudioStream" id=32]
+[ext_resource path="res://textures/clips/preach_fish.jpg" type="Texture" id=33]
+[ext_resource path="res://textures/clips/bethel.jpg" type="Texture" id=34]
+
+[sub_resource type="StyleBoxTexture" id=1]
+texture = ExtResource( 12 )
+region_rect = Rect2( 0, 0, 1079, 770 )
+
+[sub_resource type="GDScript" id=5]
+script/source = "extends \"res://script/Action.gd\"
+
+var fired = false
+
+func get_text():
+	return \"Preach for Fish\"
+
+func execute():
+	fired = true
+	$Event.fire()
+"
+
+[sub_resource type="GDScript" id=6]
+script/source = "extends \"res://script/Event.gd\"
+
+func fire():
+	self.effect = $Effect
+	self.audio_stream_player = $AudioStreamPlayer
+	$Effect.update()
+	PlayerStats.raise_event(self)
+"
+
+[sub_resource type="GDScript" id=7]
+script/source = "extends \"res://script/effect.gd\"
+
+var rnd = RandomNumberGenerator.new();
+
+func _init():
+	rnd.randomize()
+
+func update():
+	var alcohol_effect = max(1, PlayerStats.alcohol - 2)
+	var p = PlayerStats.rhetoric / alcohol_effect
+	var f = rnd.randf()
+	if f < p:
+		delta_grace = 1
+	elif f < p * 1.3:
+		delta_grace = 0
+	else:
+		delta_grace = -1
+
+func text():
+	var text
+	if delta_grace > 0:
+		text = \"The fish seem to like your preaching.\\n\"
+	elif delta_grace < 0:
+		text = \"The fish hate your preaching.\\n\"
+	else:
+		text = \"The fish do not really seem to care about your preaching.\\n\"
+
+	if delta_grace <= 0:
+		if PlayerStats.alcohol > 2:
+			text += \"That may be because you are intoxicated.\\n\"
+		else:
+			text += \"Increasing your rhetoric skills may help.\\n\"
+
+	return text + .text();
+"
+
+[sub_resource type="StreamTexture" id=2]
+flags = 4
+load_path = "res://.import/mass.jpg-800f87960699ae4f082ec8e12e1ab0bb.stex"
+
+[sub_resource type="StyleBoxTexture" id=3]
+texture = SubResource( 2 )
+region_rect = Rect2( 0, 0, 768, 512 )
+
+[sub_resource type="StyleBoxTexture" id=4]
+texture = ExtResource( 6 )
+region_rect = Rect2( 0, 0, 2876, 2180 )
+
+[node name="Game" type="Spatial"]
+script = ExtResource( 4 )
+
+[node name="Map" parent="." instance=ExtResource( 1 )]
+
+[node name="PnlAction" type="PanelContainer" parent="."]
+visible = false
+self_modulate = Color( 1, 1, 1, 0.00784314 )
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -7.0
+margin_top = -7.0
+margin_right = 7.0
+margin_bottom = 7.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource( 5 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="PnlAction"]
+margin_left = 7.0
+margin_top = 7.0
+margin_right = 164.0
+margin_bottom = 21.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_vertical = 1
+text = "Press (F) To Attend Mass"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="PnlMessage" type="PanelContainer" parent="."]
+visible = false
+self_modulate = Color( 1, 1, 1, 0.00784314 )
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -7.0
+margin_top = 23.0
+margin_right = 7.0
+margin_bottom = 37.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="PnlMessage"]
+margin_left = 7.0
+margin_top = 7.0
+margin_right = 63.0
+margin_bottom = 21.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_vertical = 1
+text = "Message"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Stats" type="Panel" parent="."]
+self_modulate = Color( 1, 1, 1, 0.937255 )
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = -40.0
+script = ExtResource( 7 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Clock" type="Label" parent="Stats"]
+anchor_top = 0.5
+anchor_bottom = 0.5
+margin_left = 13.0
+margin_top = -7.0
+margin_right = 87.0
+margin_bottom = 7.0
+grow_vertical = 2
+rect_pivot_offset = Vector2( 81.1355, 13.56 )
+text = "00:00"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="Stats"]
+anchor_top = 0.5
+anchor_bottom = 0.5
+margin_left = 90.0
+margin_top = -6.0
+margin_right = 164.0
+margin_bottom = 8.0
+grow_vertical = 2
+rect_pivot_offset = Vector2( 81.1355, 13.56 )
+text = "Hydration"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Hydration" type="ProgressBar" parent="Stats"]
+anchor_top = 0.5
+anchor_bottom = 0.5
+margin_left = 170.916
+margin_top = -10.0
+margin_right = 228.916
+margin_bottom = 10.0
+grow_vertical = 2
+min_value = -12.0
+max_value = 0.0
+step = 0.0
+value = -4.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="labGold" type="Label" parent="Stats"]
+anchor_top = 0.5
+anchor_bottom = 0.5
+margin_left = 252.0
+margin_top = -6.0
+margin_right = 326.0
+margin_bottom = 8.0
+grow_vertical = 2
+rect_pivot_offset = Vector2( 81.1355, 13.56 )
+text = "Gold"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Gold" type="Label" parent="Stats"]
+anchor_top = 0.5
+anchor_bottom = 0.5
+margin_left = 298.0
+margin_top = -7.0
+margin_right = 372.0
+margin_bottom = 7.0
+grow_vertical = 2
+rect_pivot_offset = Vector2( 81.1355, 13.56 )
+text = "125"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="labGrace" type="Label" parent="Stats"]
+anchor_top = 0.5
+anchor_bottom = 0.5
+margin_left = 505.0
+margin_top = -7.0
+margin_right = 542.0
+margin_bottom = 7.0
+grow_vertical = 2
+rect_pivot_offset = Vector2( 81.1355, 13.56 )
+text = "Grace"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Grace" type="Label" parent="Stats"]
+anchor_top = 0.5
+anchor_bottom = 0.5
+margin_left = 567.0
+margin_top = -7.0
+margin_right = 641.0
+margin_bottom = 7.0
+grow_vertical = 2
+rect_pivot_offset = Vector2( 81.1355, 13.56 )
+text = "125"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label3" type="Label" parent="Stats"]
+anchor_top = 0.5
+anchor_bottom = 0.5
+margin_left = 354.0
+margin_top = -7.0
+margin_right = 412.0
+margin_bottom = 7.0
+grow_vertical = 2
+rect_pivot_offset = Vector2( 81.1355, 13.56 )
+text = "Devotion"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Devotion" type="Label" parent="Stats"]
+anchor_top = 0.5
+anchor_bottom = 0.5
+margin_left = 419.0
+margin_top = -7.0
+margin_right = 493.0
+margin_bottom = 7.0
+grow_vertical = 2
+rect_pivot_offset = Vector2( 81.1355, 13.56 )
+text = "50"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Script" type="Node" parent="."]
+script = ExtResource( 3 )
+
+[node name="TavernDoor" type="Node" parent="Script"]
+script = ExtResource( 14 )
+
+[node name="WndTavern" type="WindowDialog" parent="Script/TavernDoor"]
+margin_right = 630.968
+margin_bottom = 469.557
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 2
+size_flags_vertical = 2
+custom_styles/panel = SubResource( 1 )
+popup_exclusive = true
+script = ExtResource( 13 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="labExplanation" type="Label" parent="Script/TavernDoor/WndTavern"]
+anchor_left = 0.5
+anchor_right = 0.53
+margin_left = -250.0
+margin_top = 40.0
+margin_right = 250.0
+margin_bottom = 74.0
+rect_pivot_offset = Vector2( 226.516, 51.7426 )
+custom_styles/normal = ExtResource( 10 )
+text = "You enjoy a meal."
+autowrap = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="labEffect" type="Label" parent="Script/TavernDoor/WndTavern"]
+anchor_left = 0.5
+anchor_right = 0.53
+margin_left = -256.484
+margin_top = 238.0
+margin_right = 243.587
+margin_bottom = 357.0
+rect_pivot_offset = Vector2( 226.516, 51.7426 )
+custom_styles/normal = ExtResource( 10 )
+text = "You drink 2 glasses of wine
+You eat 2 servings of food
+---
+You will loose 40 Gold
+You will loose ... Grace
+You will gain ... Hydration"
+autowrap = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="labWine" type="Label" parent="Script/TavernDoor/WndTavern"]
+anchor_left = 0.5
+anchor_right = 0.53
+margin_left = -251.63
+margin_top = 118.857
+margin_right = -105.559
+margin_bottom = 152.857
+rect_pivot_offset = Vector2( 268.929, 72.7372 )
+custom_styles/normal = ExtResource( 10 )
+text = "Glasses of wine"
+autowrap = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="labFood" type="Label" parent="Script/TavernDoor/WndTavern"]
+anchor_left = 0.5
+anchor_right = 0.53
+margin_left = -252.682
+margin_top = 169.384
+margin_right = -106.611
+margin_bottom = 203.384
+rect_pivot_offset = Vector2( 268.929, 72.7372 )
+custom_styles/normal = ExtResource( 10 )
+text = "Servings of food"
+autowrap = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button" type="Button" parent="Script/TavernDoor/WndTavern"]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+margin_top = -71.0
+margin_bottom = -31.0
+grow_horizontal = 2
+text = "Animam Esurientes Satiavit Bonis"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="sldWine" type="HSlider" parent="Script/TavernDoor/WndTavern"]
+margin_left = 270.106
+margin_top = 126.316
+margin_right = 557.106
+margin_bottom = 145.316
+max_value = 10.0
+value = 2.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="sldFood" type="HSlider" parent="Script/TavernDoor/WndTavern"]
+margin_left = 272.211
+margin_top = 180.0
+margin_right = 559.211
+margin_bottom = 199.0
+max_value = 5.0
+value = 1.0
+
+[node name="VisitTavern" type="Node" parent="Script/TavernDoor"]
+script = ExtResource( 18 )
+
+[node name="EffectTavern" type="Node" parent="Script/TavernDoor/VisitTavern"]
+script = ExtResource( 24 )
+
+[node name="Bridge" type="Node" parent="Script"]
+script = ExtResource( 30 )
+
+[node name="Regurgitate" type="Node" parent="Script/Bridge"]
+script = ExtResource( 29 )
+
+[node name="RegurgitateEffect" type="Node" parent="Script/Bridge/Regurgitate"]
+script = ExtResource( 31 )
+delta_hydration = -4
+delta_time = 60
+delta_alcohol = -2
+
+[node name="PreachForFish" type="Node" parent="Script/Bridge"]
+script = SubResource( 5 )
+
+[node name="Event" type="Node" parent="Script/Bridge/PreachForFish"]
+script = SubResource( 6 )
+type = "preach_for_fish"
+explanation = "You Preach for the Fish"
+latin_quote = "Quam Admirabile est Nomen Tuum"
+texture = ExtResource( 33 )
+
+[node name="Effect" type="Node" parent="Script/Bridge/PreachForFish/Event"]
+script = SubResource( 7 )
+delta_time = 464
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="Script/Bridge/PreachForFish/Event"]
+stream = ExtResource( 32 )
+volume_db = -18.828
+bus = "Voice"
+
+[node name="NearTavern" type="Node" parent="Script"]
+script = ExtResource( 15 )
+
+[node name="TemptedIntoTavern" type="Node" parent="Script/NearTavern"]
+script = ExtResource( 25 )
+type = "drunk"
+explanation = "You cannot resist the temptation of the tavern\\n\\tand indulge in drinking too much wine\\n\\nGain more piety, lessen your thirst, or avoid taverns to prevent this from happening again."
+latin_quote = "Ne perreni cremer igne"
+texture = ExtResource( 6 )
+
+[node name="EffectTavern" type="Node" parent="Script/NearTavern/TemptedIntoTavern"]
+script = ExtResource( 24 )
+
+[node name="Monastary" type="Node" parent="Script"]
+script = ExtResource( 16 )
+
+[node name="DedicatePlaceToLord" type="Node" parent="Script/Monastary"]
+script = ExtResource( 17 )
+
+[node name="EventDedication" type="Node" parent="Script/Monastary/DedicatePlaceToLord"]
+script = ExtResource( 27 )
+type = "dedication"
+explanation = "You raise an altar for the Lord"
+latin_quote = "Locus iste a Deo factus est"
+texture = ExtResource( 34 )
+
+[node name="EffectDedication" type="Node" parent="Script/Monastary/DedicatePlaceToLord/EventDedication"]
+script = ExtResource( 26 )
+
+[node name="PrayAtAltar" type="Node" parent="Script/Monastary"]
+script = ExtResource( 28 )
+
+[node name="NearWell" type="Node" parent="Script"]
+script = ExtResource( 19 )
+
+[node name="DrinkWater" type="Node" parent="Script/NearWell"]
+script = ExtResource( 20 )
+
+[node name="Effect" type="Node" parent="Script/NearWell/DrinkWater"]
+script = ExtResource( 21 )
+
+[node name="NearChurchPortal" type="Node" parent="Script"]
+script = ExtResource( 8 )
+
+[node name="AttendMass" type="Node" parent="Script/NearChurchPortal"]
+script = ExtResource( 22 )
+
+[node name="EffectMass" type="Node" parent="Script/NearChurchPortal/AttendMass"]
+script = ExtResource( 23 )
+
+[node name="WndMass" type="WindowDialog" parent="Script/NearChurchPortal/AttendMass"]
+margin_right = 630.968
+margin_bottom = 469.557
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 2
+size_flags_vertical = 2
+custom_styles/panel = SubResource( 3 )
+popup_exclusive = true
+script = ExtResource( 11 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="labExplanation" type="Label" parent="Script/NearChurchPortal/AttendMass/WndMass"]
+anchor_left = 0.5
+anchor_right = 0.53
+margin_left = -250.0
+margin_top = 40.0
+margin_right = 250.0
+margin_bottom = 74.0
+rect_pivot_offset = Vector2( 226.516, 51.7426 )
+custom_styles/normal = ExtResource( 10 )
+text = "You attend mass."
+autowrap = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="labEffect" type="Label" parent="Script/NearChurchPortal/AttendMass/WndMass"]
+anchor_left = 0.5
+anchor_right = 0.53
+margin_left = -256.484
+margin_top = 238.0
+margin_right = 243.587
+margin_bottom = 357.0
+rect_pivot_offset = Vector2( 226.516, 51.7426 )
+custom_styles/normal = ExtResource( 10 )
+text = "You light 15 candles
+You donate 20 Gold
+---
+You will loose 40 Gold
+You gain 5 piety
+You gain 5 Salvation"
+autowrap = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="labCandles" type="Label" parent="Script/NearChurchPortal/AttendMass/WndMass"]
+anchor_left = 0.5
+anchor_right = 0.53
+margin_left = -251.63
+margin_top = 118.857
+margin_right = -105.559
+margin_bottom = 152.857
+rect_pivot_offset = Vector2( 268.929, 72.7372 )
+custom_styles/normal = ExtResource( 10 )
+text = "Candles"
+autowrap = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="labDonation" type="Label" parent="Script/NearChurchPortal/AttendMass/WndMass"]
+anchor_left = 0.5
+anchor_right = 0.53
+margin_left = -252.682
+margin_top = 169.384
+margin_right = -106.611
+margin_bottom = 203.384
+rect_pivot_offset = Vector2( 268.929, 72.7372 )
+custom_styles/normal = ExtResource( 10 )
+text = "Donation"
+autowrap = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button" type="Button" parent="Script/NearChurchPortal/AttendMass/WndMass"]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+margin_left = -95.4999
+margin_top = -71.0
+margin_right = 68.5001
+margin_bottom = -31.0
+grow_horizontal = 2
+text = "Ite, Missa Est"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="sldCandles" type="HSlider" parent="Script/NearChurchPortal/AttendMass/WndMass"]
+margin_left = 270.106
+margin_top = 126.316
+margin_right = 557.106
+margin_bottom = 145.316
+max_value = 20.0
+value = 1.0
+
+[node name="sldDonation" type="HSlider" parent="Script/NearChurchPortal/AttendMass/WndMass"]
+margin_left = 272.211
+margin_top = 180.0
+margin_right = 559.211
+margin_bottom = 199.0
+value = 1.0
+
+[node name="WndEvent" type="WindowDialog" parent="."]
+margin_right = 630.968
+margin_bottom = 469.557
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 2
+size_flags_vertical = 2
+custom_styles/panel = SubResource( 4 )
+popup_exclusive = true
+script = ExtResource( 9 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="labExplanation" type="Label" parent="WndEvent"]
+anchor_left = 0.5
+anchor_right = 0.53
+margin_left = -250.0
+margin_top = 40.0
+margin_right = 250.0
+margin_bottom = -12.3892
+custom_styles/normal = ExtResource( 10 )
+text = "Lacking devotion, you blahblah"
+autowrap = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button" type="Button" parent="WndEvent"]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+margin_left = -95.4999
+margin_top = -80.0
+margin_right = 68.5001
+margin_bottom = -40.0
+grow_horizontal = 2
+text = "Ne perenni cremer igne"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+[connection signal="enter_bridge" from="Map" to="Script" method="_on_Map_enter_bridge"]
+[connection signal="enter_church_portal" from="Map" to="Script" method="_on_Map_enter_church_portal"]
+[connection signal="enter_near_tavern" from="Map" to="Script" method="_on_Map_enter_near_tavern"]
+[connection signal="enter_nice_spot" from="Map" to="Script" method="_on_Map_enter_nice_spot"]
+[connection signal="enter_tavern_door" from="Map" to="Script" method="_on_Map_enter_tavern_door"]
+[connection signal="enter_well" from="Map" to="Script" method="_on_Map_enter_well"]
+[connection signal="exit_bridge" from="Map" to="Script" method="_on_Map_exit_bridge"]
+[connection signal="exit_church_portal" from="Map" to="Script" method="_on_Map_exit_church_portal"]
+[connection signal="exit_city" from="Map" to="Script" method="_on_Map_exit_city"]
+[connection signal="exit_near_tavern" from="Map" to="Script" method="_on_Map_exit_near_tavern"]
+[connection signal="exit_nice_spot" from="Map" to="Script" method="_on_Map_exit_nice_spot"]
+[connection signal="exit_tavern_door" from="Map" to="Script" method="_on_Map_exit_tavern_door"]
+[connection signal="exit_well" from="Map" to="Script" method="_on_Map_exit_well"]
+[connection signal="player_executes_action" from="PnlAction" to="Script" method="_on_PnlAction_player_executes_action"]
+[connection signal="player_stats_updated" from="Script" to="Stats" method="_on_Script_player_stats_updated"]
+[connection signal="about_to_show" from="Script/TavernDoor/WndTavern" to="." method="_on_WndMass_about_to_show"]
+[connection signal="popup_hide" from="Script/TavernDoor/WndTavern" to="." method="_on_WndMass_popup_hide"]
+[connection signal="tavern_done" from="Script/TavernDoor/WndTavern" to="Script/TavernDoor/VisitTavern" method="_on_WndTavern_tavern_done"]
+[connection signal="pressed" from="Script/TavernDoor/WndTavern/Button" to="Script/TavernDoor/WndTavern" method="_on_Button_pressed"]
+[connection signal="value_changed" from="Script/TavernDoor/WndTavern/sldWine" to="Script/TavernDoor/WndTavern" method="_on_sldWine_value_changed"]
+[connection signal="value_changed" from="Script/TavernDoor/WndTavern/sldFood" to="Script/TavernDoor/WndTavern" method="_on_sldFood_value_changed"]
+[connection signal="visit_tavern" from="Script/TavernDoor/VisitTavern" to="Script/TavernDoor/WndTavern" method="_on_visit_tavern"]
+[connection signal="attend_mass" from="Script/NearChurchPortal/AttendMass" to="Script/NearChurchPortal/AttendMass/WndMass" method="_on_attend_mass"]
+[connection signal="about_to_show" from="Script/NearChurchPortal/AttendMass/WndMass" to="." method="_on_WndMass_about_to_show"]
+[connection signal="mass_done" from="Script/NearChurchPortal/AttendMass/WndMass" to="Script/NearChurchPortal/AttendMass" method="_on_WndMass_mass_done"]
+[connection signal="popup_hide" from="Script/NearChurchPortal/AttendMass/WndMass" to="." method="_on_WndMass_popup_hide"]
+[connection signal="pressed" from="Script/NearChurchPortal/AttendMass/WndMass/Button" to="Script/NearChurchPortal/AttendMass/WndMass" method="_on_Button_pressed"]
+[connection signal="value_changed" from="Script/NearChurchPortal/AttendMass/WndMass/sldCandles" to="Script/NearChurchPortal/AttendMass/WndMass" method="_on_sldCandles_value_changed"]
+[connection signal="value_changed" from="Script/NearChurchPortal/AttendMass/WndMass/sldDonation" to="Script/NearChurchPortal/AttendMass/WndMass" method="_on_sldDonation_value_changed"]
+[connection signal="about_to_show" from="WndEvent" to="." method="_on_PnlDrunk_about_to_show"]
+[connection signal="popup_hide" from="WndEvent" to="." method="_on_PnlDrunk_popup_hide"]
+[connection signal="popup_hide" from="WndEvent" to="Script" method="_on_WndEvent_popup_hide"]
+[connection signal="pressed" from="WndEvent/Button" to="WndEvent" method="_on_Button_pressed"]

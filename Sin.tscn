@@ -1,0 +1,39 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://Sin.gd" type="Script" id=2]
+
+[sub_resource type="ParticlesMaterial" id=2]
+emission_shape = 1
+emission_sphere_radius = 2.0
+spread = 180.0
+gravity = Vector3( 0, 0, 0 )
+initial_velocity = 1.0
+initial_velocity_random = 1.0
+anim_speed = 11.77
+anim_speed_random = 1.0
+
+[sub_resource type="SpatialMaterial" id=3]
+flags_transparent = true
+flags_unshaded = true
+flags_vertex_lighting = true
+flags_fixed_size = true
+flags_do_not_receive_shadows = true
+params_billboard_mode = 3
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+albedo_color = Color( 1, 0, 0, 0.00392157 )
+
+[sub_resource type="QuadMesh" id=4]
+material = SubResource( 3 )
+size = Vector2( 0.2, 0.2 )
+
+[node name="Sin" type="Particles"]
+cast_shadow = 0
+amount = 800
+lifetime = 600.0
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource( 2 )
+draw_pass_1 = SubResource( 4 )
+script = ExtResource( 2 )

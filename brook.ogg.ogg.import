@@ -1,0 +1,15 @@
+[remap]
+
+importer="ogg_vorbis"
+type="AudioStreamOGGVorbis"
+path="res://.import/brook.ogg.ogg-7eb80479ba19e2d09a70853e1df9507e.oggstr"
+
+[deps]
+
+source_file="res://brook.ogg.ogg"
+dest_files=[ "res://.import/brook.ogg.ogg-7eb80479ba19e2d09a70853e1df9507e.oggstr" ]
+
+[params]
+
+loop=true
+loop_offset=0

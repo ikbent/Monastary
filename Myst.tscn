@@ -1,0 +1,32 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://textures/Smoke-Effect-Free-PNG-Image.png" type="Texture" id=2]
+
+[sub_resource type="ParticlesMaterial" id=2]
+emission_shape = 2
+emission_box_extents = Vector3( 1, 1, 1 )
+gravity = Vector3( 0, 0.025, 0 )
+
+[sub_resource type="SpatialMaterial" id=3]
+flags_transparent = true
+flags_do_not_receive_shadows = true
+params_specular_mode = 4
+params_blend_mode = 1
+params_billboard_mode = 1
+albedo_color = Color( 1, 1, 1, 0.0627451 )
+albedo_texture = ExtResource( 2 )
+
+[sub_resource type="QuadMesh" id=4]
+material = SubResource( 3 )
+
+[node name="Myst" type="Spatial"]
+
+[node name="Particles" type="Particles" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.383341, 0 )
+cast_shadow = 0
+amount = 200
+lifetime = 4.0
+preprocess = 1.0
+fract_delta = false
+process_material = SubResource( 2 )
+draw_pass_1 = SubResource( 4 )
